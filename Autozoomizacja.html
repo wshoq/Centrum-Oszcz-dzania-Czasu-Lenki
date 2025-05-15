@@ -2,69 +2,146 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trzaskacz Faktur</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0078D7">
-  <title>AutoZoomizacja</title>
   <style>
     body {
+      margin: 0;
       font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #f0f2f5;
-      color: #333;
+      background: url('image.webp') no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    .overlay {
+      background: rgba(255, 255, 255, 0.85);
       min-height: 100vh;
+      padding: 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
-    }
-
-    header {
-      width: 100%;
-      max-width: 600px;
-      margin-bottom: 40px;
+      justify-content: center;
     }
 
     h1 {
-      text-align: center;
-      margin-bottom: 10px;
-    }
-
-    a {
-      display: inline-block;
       margin-bottom: 20px;
-      color: #0078D7;
-      text-decoration: none;
-      font-weight: bold;
     }
 
-    a:hover {
-      text-decoration: underline;
-    }
-
-    main {
-      width: 100%;
-      max-width: 600px;
+    form {
       background: white;
       padding: 25px;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      font-size: 1em;
+    }
+
+    button {
+      background-color: #0078D7;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+
+    .message {
+      margin-top: 20px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    a {
+      display: block;
+      margin-top: 20px;
+      text-align: center;
+      color: #0078D7;
+      text-decoration: none;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <header>
-    <a href="index.html">⬅️ Powrót do Centrum Oszczędzania Czasu</a>
-    <h1>Autozoomizacja</h1>
-  </header>
+  <div class="overlay">
+    <h1>Trzaskacz Faktur</h1>
+    <form id="invoiceForm">
+      <label for="name">Imię i Nazwisko:</label>
+      <input type="text" id="name" placeholder="np. Henryk Sienkiewicz" required>
 
-  <main>
-    <p>Tu będzie Twoje narzędzie AutoZoomizacja.</p>
-  </main>
+      <label for="service">Rodzaj usługi:</label>
+      <select id="service" required>
+        <option value="">-- wybierz --</option>
+        <option value="s">Szkolenie</option>
+        <option value="k">Konsultacja</option>
+        <option value="p">Proforma Szkolenie</option>
+      </select>
+
+      <button type="submit">Trzaskaj Fakturę</button>
+    </form>
+    <div class="message" id="messageArea"></div>
+    <a href="index.html">⬅️ Powrót do Centrum Oszczędzania Czasu</a>
+  </div>
 
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js');
     }
+
+    const form = document.getElementById('invoiceForm');
+    const messageArea = document.getElementById('messageArea');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById('name').value.trim();
+      const service = document.getElementById('service').value;
+      const chatInput = `${name} ${service}`;
+      const url = `https://n8n-service-rtdq.onrender.com/webhook/trzaskaczfaktur?chatInput=${encodeURIComponent(chatInput)}&sessionId=test-manual&action=sendMessage`;
+
+      let dots = '';
+      const intervalId = setInterval(() => {
+        dots = dots.length >= 3 ? '' : dots + '.';
+        messageArea.textContent = '⏳ Trzaskam fakturę' + dots;
+        messageArea.className = 'message info';
+      }, 500);
+
+      try {
+        const res = await fetch(url);
+        clearInterval(intervalId);
+
+        if (res.ok) {
+          messageArea.textContent = '✅ Faktura trzasknięta!';
+          messageArea.className = 'message success';
+          form.reset();
+
+          setTimeout(() => {
+            messageArea.textContent = '🤖 Co mogę dla ciebie trzasnąć?';
+            messageArea.className = 'message';
+          }, 5000);
+        } else {
+          messageArea.textContent = '❌ Błąd podczas trzaskania faktury.';
+          messageArea.className = 'message';
+        }
+      } catch (error) {
+        clearInterval(intervalId);
+        messageArea.textContent = '❌ Nie udało się połączyć z webhookiem.';
+        messageArea.className = 'message';
+        console.error(error);
+      }
+    });
   </script>
 </body>
 </html>
