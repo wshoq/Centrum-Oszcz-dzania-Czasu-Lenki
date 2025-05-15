@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Centrum Oszczędzania Czasu</title>
+  <style>
+    body, html {
+      margin: 0; padding: 0; height: 100%;
+      font-family: Arial, sans-serif;
+      background: url('image.webp') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      text-shadow: 1px 1px 5px rgba(0,0,0,0.7);
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+
+    nav {
+      display: flex;
+      gap: 25px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    a {
+      flex: 1 1 150px;
+      background-color: rgba(0,0,0,0.5);
+      padding: 18px 15px;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: bold;
+      text-decoration: none;
+      color: white;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+
+    a:hover {
+      background-color: rgba(0,0,0,0.8);
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 2rem;
+        margin-bottom: 30px;
+      }
+      nav {
+        gap: 15px;
+      }
+      a {
+        flex-basis: 100%;
+        font-size: 1.1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Centrum Oszczędzania Czasu</h1>
+  <nav>
+    <a href="AutoZoomizacja.html">📅 AutoZoomizacja</a>
+    <a href="Trzaskacz.html">⚡ Trzaskacz Faktur</a>
+  </nav>
+</body>
+</html>
