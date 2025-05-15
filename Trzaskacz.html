@@ -64,23 +64,15 @@
       text-align: center;
     }
 
-    .message button {
-      margin: 10px 5px 0;
+    .question {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .question button {
+      width: auto;
+      margin: 5px;
       padding: 10px 20px;
-      font-size: 1em;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-    }
-
-    #sendYes {
-      background-color: #28a745;
-      color: white;
-    }
-
-    #sendNo {
-      background-color: #dc3545;
-      color: white;
     }
 
     a {
@@ -90,6 +82,11 @@
       color: #0078D7;
       text-decoration: none;
       font-weight: bold;
+      user-select: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -110,8 +107,16 @@
 
       <button type="submit">Trzaskaj Fakturę</button>
     </form>
+
     <div class="message" id="messageArea"></div>
-    <a href="AutoZoomizacja.html">📅 AutoZoomizacja</a>
+
+    <div class="question" id="sendQuestion" style="display: none;">
+      <p>📤 Czy wysłać fakturę do klienta?</p>
+      <button id="yesSend">Tak</button>
+      <button id="noSend">Nie</button>
+    </div>
+
+    <a href="index.html">⬅️ Powrót do Centrum Oszczędzania Czasu</a>
   </div>
 
   <script>
@@ -121,12 +126,22 @@
 
     const form = document.getElementById('invoiceForm');
     const messageArea = document.getElementById('messageArea');
+    const sendQuestion = document.getElementById('sendQuestion');
+    const yesSend = document.getElementById('yesSend');
+    const noSend = document.getElementById('noSend');
+
+    let lastName = '';
+    let lastService = '';
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const name = document.getElementById('name').value.trim();
       const service = document.getElementById('service').value;
+
+      lastName = name;
+      lastService = service;
+
       const chatInput = `${name} ${service}`;
       const url = `https://n8n-service-rtdq.onrender.com/webhook/trzaskaczfaktur?chatInput=${encodeURIComponent(chatInput)}&sessionId=test-manual&action=sendMessage`;
 
@@ -142,35 +157,18 @@
         clearInterval(intervalId);
 
         if (res.ok) {
+          messageArea.textContent = '✅ Faktura trzasknięta!';
+          messageArea.className = 'message success';
           form.reset();
 
-          setTimeout(() => {
-            messageArea.innerHTML = `
-              ✅ Faktura trzasknięta!<br><br>
-              📤 Czy chcesz wysłać ją do klienta?<br><br>
-              <button id="sendYes">Tak</button>
-              <button id="sendNo">Nie</button>
-            `;
-
-            document.getElementById('sendYes').addEventListener('click', async () => {
-              messageArea.textContent = '📨 Wysyłam fakturę...';
-              try {
-                const sendRes = await fetch('https://n8n-service-rtdq.onrender.com/webhook/sendInvoice');
-                if (sendRes.ok) {
-                  messageArea.textContent = '✅ Faktura wysłana do klienta!';
-                } else {
-                  messageArea.textContent = '❌ Błąd przy wysyłaniu faktury.';
-                }
-              } catch (error) {
-                messageArea.textContent = '❌ Nie udało się połączyć z wysyłką.';
-                console.error(error);
-              }
-            });
-
-            document.getElementById('sendNo').addEventListener('click', () => {
+          if (service === 'k' || service === 'p') {
+            sendQuestion.style.display = 'block';
+          } else {
+            setTimeout(() => {
               messageArea.textContent = '🤖 Co mogę dla ciebie trzasnąć?';
-            });
-          }, 1000);
+              messageArea.className = 'message';
+            }, 4000);
+          }
         } else {
           messageArea.textContent = '❌ Błąd podczas trzaskania faktury.';
           messageArea.className = 'message';
@@ -181,6 +179,43 @@
         messageArea.className = 'message';
         console.error(error);
       }
+    });
+
+    yesSend.addEventListener('click', async () => {
+      const sendUrl = `https://n8n-service-rtdq.onrender.com/webhook/sendInvoice`;
+
+      try {
+        const res = await fetch(sendUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: lastName,
+            service: lastService
+          })
+        });
+
+        if (res.ok) {
+          messageArea.textContent = '📧 Faktura plaśnięta klientowi!';
+        } else {
+          messageArea.textContent = '❌ Nie udało się wysłać faktury.';
+        }
+      } catch (error) {
+        messageArea.textContent = '❌ Błąd połączenia przy wysyłce.';
+        console.error(error);
+      } finally {
+        sendQuestion.style.display = 'none';
+        setTimeout(() => {
+          messageArea.textContent = '🤖 Co mogę dla ciebie trzasnąć?';
+        }, 4000);
+      }
+    });
+
+    noSend.addEventListener('click', () => {
+      sendQuestion.style.display = 'none';
+      messageArea.textContent = '👌 Faktura nie została wysłana.';
+      setTimeout(() => {
+        messageArea.textContent = '🤖 Co mogę dla ciebie trzasnąć?';
+      }, 4000);
     });
   </script>
 </body>
