@@ -113,6 +113,10 @@
     </div>
   </div>
 
+  <!-- DŹWIĘKI -->
+  <audio id="soundClick" src="click.mp3" preload="auto"></audio>
+  <audio id="soundWhoosh" src="whoosh.mp3" preload="auto"></audio>
+
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js');
@@ -123,6 +127,9 @@
     const sendQuestion = document.getElementById('sendQuestion');
     const yesSend = document.getElementById('yesSend');
     const noSend = document.getElementById('noSend');
+
+    const soundClick = document.getElementById('soundClick');
+    const soundWhoosh = document.getElementById('soundWhoosh');
 
     let lastName = '';
     let lastService = '';
@@ -150,11 +157,11 @@
 
         const data = await res.json();
         console.log('DANE Z WEBHOOKA A:', data);
-        console.log('KLUCZE:', Object.keys(data));
-
-        // **TUTAJ** poprawka: numer faktury to pierwszy klucz obiektu
         lastInvoiceNumber = Object.keys(data)[0] || '';
         console.log('NUMER FAKTURY:', lastInvoiceNumber);
+
+        // 🔊 graj dźwięk klik po otrzymaniu faktury
+        soundClick.play().catch(err => console.warn('Klik error:', err));
 
         messageArea.textContent = `✅ Faktura trzasknięta: ${lastInvoiceNumber}`;
         messageArea.className = 'message success';
@@ -188,6 +195,10 @@
       try {
         const res = await fetch(url);
         if (!res.ok) throw new Error('Status ' + res.status);
+
+        // 🔊 graj dźwięk whoosh po wysłaniu
+        soundWhoosh.play().catch(err => console.warn('Whoosh error:', err));
+
         messageArea.textContent = '📧 Faktura wysłana!';
         messageArea.className = 'message success';
       } catch (error) {
