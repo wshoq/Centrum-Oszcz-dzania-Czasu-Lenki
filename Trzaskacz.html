@@ -130,7 +130,7 @@
     const yesSend = document.getElementById('yesSend');
     const noSend = document.getElementById('noSend');
 
-    let lastChatInput = ''; // zapamiętujemy dane do ewentualnego wysłania faktury
+    let lastChatInput = '';
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -158,7 +158,7 @@
           messageArea.className = 'message success';
           form.reset();
 
-          if (service === 'k') {  // Pytanie tylko dla konsultacji
+          if (service === 'k') {
             sendQuestion.style.display = 'block';
           } else {
             sendQuestion.style.display = 'none';
@@ -180,26 +180,28 @@
     });
 
     yesSend.addEventListener('click', async () => {
-      // Zmieniłem metodę na GET, więc body usuwam
       const sendUrl = `https://n8n-service-rtdq.onrender.com/webhook/sendInvoice?chatInput=${encodeURIComponent(lastChatInput)}`;
       try {
         const res = await fetch(sendUrl, {
           method: 'GET',
-          headers: { 'Content-Type': 'application/json' }
         });
 
         if (res.ok) {
           messageArea.textContent = '📧 Faktura plaśnięta klientowi!';
+          messageArea.className = 'message success';
         } else {
           messageArea.textContent = '❌ Nie udało się wysłać faktury.';
+          messageArea.className = 'message';
         }
       } catch (error) {
         messageArea.textContent = '❌ Błąd połączenia przy wysyłce.';
+        messageArea.className = 'message';
         console.error(error);
       } finally {
         sendQuestion.style.display = 'none';
         setTimeout(() => {
           messageArea.textContent = '🤖 Co mogę dla ciebie trzasnąć?';
+          messageArea.className = 'message';
         }, 4000);
       }
     });
@@ -207,8 +209,10 @@
     noSend.addEventListener('click', () => {
       sendQuestion.style.display = 'none';
       messageArea.textContent = '👌 Faktura nie została wysłana.';
+      messageArea.className = 'message';
       setTimeout(() => {
         messageArea.textContent = '🤖 Co mogę dla ciebie trzasnąć?';
+        messageArea.className = 'message';
       }, 4000);
     });
   </script>
