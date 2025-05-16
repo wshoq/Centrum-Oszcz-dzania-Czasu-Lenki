@@ -4,8 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Trzaskacz Faktur</title>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0078D7">
   <style>
     body {
       margin: 0;
@@ -13,9 +11,8 @@
       background: url('image.webp') no-repeat center center fixed;
       background-size: cover;
     }
-
     .overlay {
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(255,255,255,0.85);
       min-height: 100vh;
       padding: 20px;
       display: flex;
@@ -23,107 +20,55 @@
       align-items: center;
       justify-content: center;
     }
-
-    h1 {
-      margin-bottom: 20px;
-    }
-
-    form {
+    form, .question {
       background: white;
       padding: 25px;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       width: 100%;
       max-width: 400px;
+      margin-top: 20px;
     }
-
-    label {
-      display: block;
-      margin-top: 10px;
-    }
-
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      font-size: 1em;
-    }
-
-    button {
-      background-color: #0078D7;
-      color: white;
-      border: none;
-      border-radius: 6px;
+    .question { display: none; }
+    button { 
+      width: 100%; padding: 10px; margin-top: 15px; 
+      background: #0078D7; color: #fff; border: none; border-radius: 6px;
       cursor: pointer;
-      margin-top: 15px;
     }
-
     .message {
-      margin-top: 20px;
-      font-weight: bold;
-      text-align: center;
+      margin-top: 20px; font-weight: bold; text-align: center;
     }
-
-    .question {
-      margin-top: 20px;
-      text-align: center;
-    }
-
-    .question button {
-      width: auto;
-      margin: 5px;
-      padding: 10px 20px;
-    }
-
-    a {
-      display: block;
-      margin-top: 20px;
-      text-align: center;
-      color: #0078D7;
-      text-decoration: none;
-      font-weight: bold;
-      user-select: none;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
+    .success { color: green; }
+    .info    { color: #333; }
+    .error   { color: red; }
   </style>
 </head>
 <body>
   <div class="overlay">
     <h1>Trzaskacz Faktur</h1>
     <form id="invoiceForm">
-      <label for="name">Imię i Nazwisko:</label>
+      <label>Imię i Nazwisko:</label>
       <input type="text" id="name" placeholder="np. Henryk Sienkiewicz" required>
-
-      <label for="service">Rodzaj usługi:</label>
+      <label>Rodzaj usługi:</label>
       <select id="service" required>
         <option value="">-- wybierz --</option>
         <option value="s">Szkolenie</option>
         <option value="k">Konsultacja</option>
         <option value="p">Proforma Szkolenie</option>
       </select>
-
       <button type="submit">Trzaskaj Fakturę</button>
     </form>
 
-    <div class="message" id="messageArea"></div>
+    <div class="message info" id="messageArea"></div>
 
-    <div class="question" id="sendQuestion" style="display: none;">
+    <div class="question" id="sendQuestion">
       <p>📤 Czy wysłać fakturę do klienta?</p>
       <button id="yesSend">Tak</button>
       <button id="noSend">Nie</button>
     </div>
-
-    <a href="index.html">⬅️ Powrót do Centrum Oszczędzania Czasu</a>
   </div>
 
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js');
-    }
-
     const form = document.getElementById('invoiceForm');
     const messageArea = document.getElementById('messageArea');
     const sendQuestion = document.getElementById('sendQuestion');
@@ -131,78 +76,76 @@
     const noSend = document.getElementById('noSend');
 
     let lastChatInput = '';
+    let lastService = '';
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-
       const name = document.getElementById('name').value.trim();
       const service = document.getElementById('service').value;
-      const chatInput = `${name} ${service}`;
-      lastChatInput = chatInput;
+      lastChatInput = `${name} ${service}`;
+      lastService = service;
+      console.log('Wybrana usługa:', service);
 
-      const url = `https://n8n-service-rtdq.onrender.com/webhook/trzaskaczfaktur?chatInput=${encodeURIComponent(chatInput)}&sessionId=test-manual&action=sendMessage`;
-
+      // pokaż loader
+      messageArea.className = 'message info';
       let dots = '';
       const intervalId = setInterval(() => {
         dots = dots.length >= 3 ? '' : dots + '.';
         messageArea.textContent = '⏳ Trzaskam fakturę' + dots;
-        messageArea.className = 'message info';
       }, 500);
 
       try {
-        const res = await fetch(url);
+        const res = await fetch(
+          `https://n8n-service-rtdq.onrender.com/webhook/trzaskaczfaktur?chatInput=${encodeURIComponent(lastChatInput)}&sessionId=test-manual&action=sendMessage`
+        );
         clearInterval(intervalId);
 
-        if (res.ok) {
-          messageArea.textContent = '✅ Faktura trzasknięta!';
-          messageArea.className = 'message success';
-          form.reset();
+        if (!res.ok) throw new Error('status ' + res.status);
+        messageArea.textContent = '✅ Faktura trzasknięta!';
+        messageArea.className = 'message success';
 
-          if (service === 'k') {
-            sendQuestion.style.display = 'block';
-          } else {
-            sendQuestion.style.display = 'none';
-            setTimeout(() => {
-              messageArea.textContent = '🤖 Co mogę dla ciebie trzasnąć?';
-              messageArea.className = 'message';
-            }, 4000);
-          }
+        // pokaż pytanie tylko dla konsultacji
+        if (lastService === 'k') {
+          sendQuestion.style.display = 'block';
         } else {
-          messageArea.textContent = '❌ Błąd podczas trzaskania faktury.';
-          messageArea.className = 'message';
+          sendQuestion.style.display = 'none';
+          setTimeout(() => {
+            messageArea.textContent = '🤖 Co mogę dla ciebie trzasnąć?';
+            messageArea.className = 'message info';
+          }, 3000);
         }
-      } catch (error) {
+
+        form.reset();
+      } catch (err) {
         clearInterval(intervalId);
-        messageArea.textContent = '❌ Nie udało się połączyć z webhookiem.';
-        messageArea.className = 'message';
-        console.error(error);
+        console.error(err);
+        messageArea.textContent = '❌ Błąd podczas trzaskania faktury.';
+        messageArea.className = 'message error';
       }
     });
 
     yesSend.addEventListener('click', async () => {
-      const sendUrl = `https://n8n-service-rtdq.onrender.com/webhook/sendInvoice?chatInput=${encodeURIComponent(lastChatInput)}`;
-      try {
-        const res = await fetch(sendUrl, {
-          method: 'GET',
-        });
+      sendQuestion.style.display = 'none';
+      messageArea.className = 'message info';
+      messageArea.textContent = '⏳ Wysyłam fakturę do klienta...';
 
-        if (res.ok) {
-          messageArea.textContent = '📧 Faktura plaśnięta klientowi!';
-          messageArea.className = 'message success';
-        } else {
-          messageArea.textContent = '❌ Nie udało się wysłać faktury.';
-          messageArea.className = 'message';
-        }
-      } catch (error) {
-        messageArea.textContent = '❌ Błąd połączenia przy wysyłce.';
-        messageArea.className = 'message';
-        console.error(error);
+      try {
+        const res = await fetch(
+          `https://n8n-service-rtdq.onrender.com/webhook/sendInvoice?chatInput=${encodeURIComponent(lastChatInput)}`,
+          { method: 'GET' }
+        );
+        if (!res.ok) throw new Error('status ' + res.status);
+        messageArea.textContent = '📧 Faktura wysłana!';
+        messageArea.className = 'message success';
+      } catch (err) {
+        console.error(err);
+        messageArea.textContent = '❌ Nie udało się wysłać faktury.';
+        messageArea.className = 'message error';
       } finally {
-        sendQuestion.style.display = 'none';
         setTimeout(() => {
           messageArea.textContent = '🤖 Co mogę dla ciebie trzasnąć?';
-          messageArea.className = 'message';
-        }, 4000);
+          messageArea.className = 'message info';
+        }, 3000);
       }
     });
 
@@ -212,8 +155,8 @@
       messageArea.className = 'message';
       setTimeout(() => {
         messageArea.textContent = '🤖 Co mogę dla ciebie trzasnąć?';
-        messageArea.className = 'message';
-      }, 4000);
+        messageArea.className = 'message info';
+      }, 3000);
     });
   </script>
 </body>
