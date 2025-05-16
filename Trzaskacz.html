@@ -158,9 +158,10 @@
           messageArea.className = 'message success';
           form.reset();
 
-          if (service === 'k' || service === 'p') {
+          if (service === 'k') {  // Pytanie tylko dla konsultacji
             sendQuestion.style.display = 'block';
           } else {
+            sendQuestion.style.display = 'none';
             setTimeout(() => {
               messageArea.textContent = '🤖 Co mogę dla ciebie trzasnąć?';
               messageArea.className = 'message';
@@ -179,12 +180,12 @@
     });
 
     yesSend.addEventListener('click', async () => {
-      const sendUrl = `https://n8n-service-rtdq.onrender.com/webhook/sendInvoice`;
+      // Zmieniłem metodę na GET, więc body usuwam
+      const sendUrl = `https://n8n-service-rtdq.onrender.com/webhook/sendInvoice?chatInput=${encodeURIComponent(lastChatInput)}`;
       try {
         const res = await fetch(sendUrl, {
           method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chatInput: lastChatInput })
+          headers: { 'Content-Type': 'application/json' }
         });
 
         if (res.ok) {
