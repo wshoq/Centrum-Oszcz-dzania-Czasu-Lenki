@@ -2,10 +2,10 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Trzaskacz Faktur</title>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0078D7">
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0078D7" />
   <style>
     body {
       margin: 0;
@@ -13,6 +13,7 @@
       background: url('image.webp') no-repeat center center fixed;
       background-size: cover;
     }
+
     .overlay {
       background: rgba(255, 255, 255, 0.85);
       min-height: 100vh;
@@ -22,9 +23,11 @@
       align-items: center;
       justify-content: center;
     }
+
     h1 {
       margin-bottom: 20px;
     }
+
     form {
       background: white;
       padding: 25px;
@@ -33,16 +36,19 @@
       width: 100%;
       max-width: 400px;
     }
+
     label {
       display: block;
       margin-top: 10px;
     }
+
     input, select, button {
       width: 100%;
       padding: 10px;
       margin-top: 5px;
       font-size: 1em;
     }
+
     button {
       background-color: #0078D7;
       color: white;
@@ -51,11 +57,13 @@
       cursor: pointer;
       margin-top: 15px;
     }
+
     .message {
       margin-top: 20px;
       font-weight: bold;
       text-align: center;
     }
+
     a {
       display: block;
       margin-top: 20px;
@@ -65,9 +73,11 @@
       font-weight: bold;
       user-select: none;
     }
+
     a:hover {
       text-decoration: underline;
     }
+
     .question {
       display: none;
       background: white;
@@ -96,14 +106,29 @@
       background-color: #ccc;
       color: black;
     }
+
+    /* --- MOBILE: przenieś link nad nagłówek --- */
+    @media (max-width: 600px) {
+      .overlay {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      a {
+        order: -1;
+        margin-bottom: 15px;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="overlay">
+    <a href="index.html">⬅️ Powrót do Centrum Oszczędzania Czasu</a>
+
     <h1>Trzaskacz Faktur</h1>
     <form id="invoiceForm">
       <label for="name">Imię i Nazwisko:</label>
-      <input type="text" id="name" placeholder="np. Henryk Sienkiewicz" required>
+      <input type="text" id="name" placeholder="np. Henryk Sienkiewicz" required />
 
       <label for="service">Rodzaj usługi:</label>
       <select id="service" required>
@@ -123,8 +148,6 @@
       <button id="yesSend">Tak</button>
       <button id="noSend">Nie</button>
     </div>
-
-    <a href="index.html">⬅️ Powrót do Centrum Oszczędzania Czasu</a>
   </div>
 
   <script>
@@ -166,15 +189,17 @@
 
         const data = await res.json();
         console.log('DANE Z WEBHOOKA A:', data);
-        console.log('KLUCZE Z OBIEKTU:', Object.keys(data));
-        lastInvoiceNumber = Object.keys(data)[0] || '';
-        console.log('PRZYJĘTY NUMER FAKTURY:', lastInvoiceNumber);
 
-        messageArea.textContent = '✅ Faktura trzasknięta!';
+        // Zakładam, że numer faktury jest pod kluczem w formacie "EP/KP123/2025"
+        // Weź pierwszy klucz obiektu jako numer faktury
+        lastInvoiceNumber = Object.keys(data)[0] || '';
+
+        messageArea.textContent = `✅ Faktura trzasknięta! Numer: ${lastInvoiceNumber}`;
         messageArea.className = 'message success';
 
         form.reset();
 
+        // Pytanie o wysyłkę tylko dla konsultacji
         if (lastService === 'k') {
           sendQuestion.style.display = 'block';
         } else {
@@ -186,10 +211,10 @@
         }
       } catch (error) {
         clearInterval(intervalId);
-        console.error(error);
         messageArea.textContent = '❌ Błąd podczas trzaskania faktury.';
         messageArea.className = 'message';
         sendQuestion.style.display = 'none';
+        console.error(error);
       }
     });
 
@@ -198,8 +223,7 @@
       messageArea.className = 'message info';
       messageArea.textContent = '⏳ Wysyłam fakturę do klienta...';
 
-      console.log('Wysyłam fakturę z numerem:', lastInvoiceNumber);
-
+      // Teraz wysyłamy wraz z numerem faktury
       const url = `https://n8n-service-rtdq.onrender.com/webhook/sendInvoice?name=${encodeURIComponent(lastName)}&service=${encodeURIComponent(lastService)}&invoiceNumber=${encodeURIComponent(lastInvoiceNumber)}`;
 
       try {
