@@ -175,9 +175,10 @@
         if (!res.ok) throw new Error('Status ' + res.status);
 
         const data = await res.json();
-        console.log('DANE Z WEBHOOKA A:', data); // <- tu zobaczysz odpowiedź w konsoli przeglądarki
+        console.log('DANE Z WEBHOOKA A:', data);
 
-        lastInvoiceNumber = data.name || ''; // zmień to, jeśli potrzebne np. data.item.json.sheetName
+        // Pobierz klucz (np. EP/KP123/2025)
+        lastInvoiceNumber = Object.keys(data)[0] || '';
 
         messageArea.textContent = '✅ Faktura trzasknięta!';
         messageArea.className = 'message success';
