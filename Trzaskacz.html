@@ -2,10 +2,10 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Trzaskacz Faktur</title>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0078D7">
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0078D7" />
   <style>
     body {
       margin: 0;
@@ -113,7 +113,7 @@
     <h1>Trzaskacz Faktur</h1>
     <form id="invoiceForm">
       <label for="name">Imię i Nazwisko:</label>
-      <input type="text" id="name" placeholder="np. Henryk Sienkiewicz" required>
+      <input type="text" id="name" placeholder="np. Henryk Sienkiewicz" required />
 
       <label for="service">Rodzaj usługi:</label>
       <select id="service" required>
@@ -150,6 +150,7 @@
 
     let lastName = '';
     let lastService = '';
+    let lastInvoiceNumber = '';
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -157,7 +158,6 @@
       lastName = document.getElementById('name').value.trim();
       lastService = document.getElementById('service').value;
 
-      // *** Stara obsługa webhooka 'trzaskaczfaktur' - dokładnie taka jak w działającym kodzie ***
       const chatInput = `${lastName} ${lastService}`;
       const url = `https://n8n-service-rtdq.onrender.com/webhook/trzaskaczfaktur?chatInput=${encodeURIComponent(chatInput)}&sessionId=test-manual&action=sendMessage`;
 
@@ -174,12 +174,14 @@
 
         if (!res.ok) throw new Error('Status ' + res.status);
 
-        messageArea.textContent = '✅ Faktura trzasknięta!';
+        const data = await res.json();
+        lastInvoiceNumber = data.name || ''; // <-- ODCZYT Z POLA 'name' w webhooku n8n
+
+        messageArea.textContent = `✅ Faktura trzasknięta: ${lastInvoiceNumber}`;
         messageArea.className = 'message success';
 
         form.reset();
 
-        // Pytanie o wysyłkę tylko dla konsultacji
         if (lastService === 'k') {
           sendQuestion.style.display = 'block';
         } else {
@@ -203,8 +205,7 @@
       messageArea.className = 'message info';
       messageArea.textContent = '⏳ Wysyłam fakturę do klienta...';
 
-      // Nowa obsługa webhooka 'sendInvoice' - działa elegancko, osobno name i service
-      const url = `https://n8n-service-rtdq.onrender.com/webhook/sendInvoice?name=${encodeURIComponent(lastName)}&service=${encodeURIComponent(lastService)}`;
+      const url = `https://n8n-service-rtdq.onrender.com/webhook/sendInvoice?name=${encodeURIComponent(lastName)}&service=${encodeURIComponent(lastService)}&invoiceNumber=${encodeURIComponent(lastInvoiceNumber)}`;
 
       try {
         const res = await fetch(url);
