@@ -182,7 +182,7 @@
       const sendUrl = `https://n8n-service-rtdq.onrender.com/webhook/sendInvoice`;
       try {
         const res = await fetch(sendUrl, {
-          method: 'POST',
+          method: 'GET',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ chatInput: lastChatInput })
         });
