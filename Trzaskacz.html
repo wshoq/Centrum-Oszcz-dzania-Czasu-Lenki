@@ -111,16 +111,7 @@
       <button id="yesSend">Tak</button>
       <button id="noSend">Nie</button>
     </div>
-
-    <div style="margin-top: 30px;">
-      <button onclick="document.getElementById('soundClick').play()">🔊 Test klik</button>
-      <button onclick="document.getElementById('soundWhoosh').play()">💨 Test siuh</button>
-    </div>
   </div>
-
-  <!-- Dźwięki -->
-  <audio id="soundClick" src="https://www.soundjay.com/button/sounds/button-16.mp3" preload="auto"></audio>
-  <audio id="soundWhoosh" src="https://www.soundjay.com/button/sounds/button-10.mp3" preload="auto"></audio>
 
   <script>
     if ('serviceWorker' in navigator) {
@@ -132,8 +123,6 @@
     const sendQuestion = document.getElementById('sendQuestion');
     const yesSend = document.getElementById('yesSend');
     const noSend = document.getElementById('noSend');
-    const soundClick = document.getElementById('soundClick');
-    const soundWhoosh = document.getElementById('soundWhoosh');
 
     let lastName = '';
     let lastService = '';
@@ -160,12 +149,16 @@
         if (!res.ok) throw new Error('Status ' + res.status);
 
         const data = await res.json();
+        console.log('DANE Z WEBHOOKA A:', data);
+        console.log('KLUCZE:', Object.keys(data));
+
+        // **TUTAJ** poprawka: numer faktury to pierwszy klucz obiektu
         lastInvoiceNumber = Object.keys(data)[0] || '';
+        console.log('NUMER FAKTURY:', lastInvoiceNumber);
 
         messageArea.textContent = `✅ Faktura trzasknięta: ${lastInvoiceNumber}`;
         messageArea.className = 'message success';
         form.reset();
-        soundClick.play().catch(e => console.warn('Audio play error:', e));
 
         if (lastService) {
           sendQuestion.style.display = 'block';
@@ -189,6 +182,7 @@
       sendQuestion.style.display = 'none';
       messageArea.className = 'message info';
       messageArea.textContent = '⏳ Wysyłam fakturę do klienta...';
+      console.log('WYSYŁAM NUMER:', lastInvoiceNumber);
 
       const url = `https://n8n-service-rtdq.onrender.com/webhook/sendInvoice?name=${encodeURIComponent(lastName)}&service=${encodeURIComponent(lastService)}&invoiceNumber=${encodeURIComponent(lastInvoiceNumber)}`;
       try {
@@ -196,7 +190,6 @@
         if (!res.ok) throw new Error('Status ' + res.status);
         messageArea.textContent = '📧 Faktura wysłana!';
         messageArea.className = 'message success';
-        soundWhoosh.play().catch(e => console.warn('Audio play error:', e));
       } catch (error) {
         console.error(error);
         messageArea.textContent = '❌ Nie udało się wysłać faktury.';
