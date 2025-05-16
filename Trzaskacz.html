@@ -13,6 +13,7 @@
       background: url('image.webp') no-repeat center center fixed;
       background-size: cover;
     }
+
     .overlay {
       background: rgba(255, 255, 255, 0.85);
       min-height: 100vh;
@@ -22,9 +23,11 @@
       align-items: center;
       justify-content: center;
     }
+
     h1 {
       margin-bottom: 20px;
     }
+
     form {
       background: white;
       padding: 25px;
@@ -33,16 +36,19 @@
       width: 100%;
       max-width: 400px;
     }
+
     label {
       display: block;
       margin-top: 10px;
     }
+
     input, select, button {
       width: 100%;
       padding: 10px;
       margin-top: 5px;
       font-size: 1em;
     }
+
     button {
       background-color: #0078D7;
       color: white;
@@ -51,11 +57,13 @@
       cursor: pointer;
       margin-top: 15px;
     }
+
     .message {
       margin-top: 20px;
       font-weight: bold;
       text-align: center;
     }
+
     a {
       display: block;
       margin-top: 20px;
@@ -65,9 +73,11 @@
       font-weight: bold;
       user-select: none;
     }
+
     a:hover {
       text-decoration: underline;
     }
+
     .question {
       display: none;
       background: white;
@@ -116,7 +126,7 @@
       <button type="submit">Trzaskaj Fakturę</button>
     </form>
 
-    <div class="message info" id="messageArea">🤖 Co mogę dla ciebie trzasnąć?</div>
+    <div class="message" id="messageArea">🤖 Co mogę dla ciebie trzasnąć?</div>
 
     <div class="question" id="sendQuestion">
       <p>📤 Czy wysłać fakturę do klienta?</p>
@@ -147,44 +157,44 @@
       lastName = document.getElementById('name').value.trim();
       lastService = document.getElementById('service').value;
 
+      // *** Stara obsługa webhooka 'trzaskaczfaktur' - dokładnie taka jak w działającym kodzie ***
       const chatInput = `${lastName} ${lastService}`;
       const url = `https://n8n-service-rtdq.onrender.com/webhook/trzaskaczfaktur?chatInput=${encodeURIComponent(chatInput)}&sessionId=test-manual&action=sendMessage`;
 
-      // Pokaż loader z animacją kropek
-      messageArea.className = 'message info';
       let dots = '';
       const intervalId = setInterval(() => {
         dots = dots.length >= 3 ? '' : dots + '.';
         messageArea.textContent = '⏳ Trzaskam fakturę' + dots;
+        messageArea.className = 'message info';
       }, 500);
 
       try {
         const res = await fetch(url);
         clearInterval(intervalId);
 
-        if (!res.ok) throw new Error('status ' + res.status);
+        if (!res.ok) throw new Error('Status ' + res.status);
 
         messageArea.textContent = '✅ Faktura trzasknięta!';
         messageArea.className = 'message success';
 
-        // Pokaż pytanie o wysyłkę tylko gdy konsultacja
+        form.reset();
+
+        // Pytanie o wysyłkę tylko dla konsultacji
         if (lastService === 'k') {
           sendQuestion.style.display = 'block';
         } else {
           sendQuestion.style.display = 'none';
           setTimeout(() => {
             messageArea.textContent = '🤖 Co mogę dla ciebie trzasnąć?';
-            messageArea.className = 'message info';
+            messageArea.className = 'message';
           }, 3000);
         }
-
-        form.reset();
-      } catch (err) {
+      } catch (error) {
         clearInterval(intervalId);
-        console.error(err);
         messageArea.textContent = '❌ Błąd podczas trzaskania faktury.';
-        messageArea.className = 'message error';
+        messageArea.className = 'message';
         sendQuestion.style.display = 'none';
+        console.error(error);
       }
     });
 
@@ -193,23 +203,23 @@
       messageArea.className = 'message info';
       messageArea.textContent = '⏳ Wysyłam fakturę do klienta...';
 
-      // Tutaj wysyłamy jako osobne parametry!
+      // Nowa obsługa webhooka 'sendInvoice' - działa elegancko, osobno name i service
       const url = `https://n8n-service-rtdq.onrender.com/webhook/sendInvoice?name=${encodeURIComponent(lastName)}&service=${encodeURIComponent(lastService)}`;
 
       try {
-        const res = await fetch(url, { method: 'GET' });
-        if (!res.ok) throw new Error('status ' + res.status);
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Status ' + res.status);
 
         messageArea.textContent = '📧 Faktura wysłana!';
         messageArea.className = 'message success';
-      } catch (err) {
-        console.error(err);
+      } catch (error) {
+        console.error(error);
         messageArea.textContent = '❌ Nie udało się wysłać faktury.';
-        messageArea.className = 'message error';
+        messageArea.className = 'message';
       } finally {
         setTimeout(() => {
           messageArea.textContent = '🤖 Co mogę dla ciebie trzasnąć?';
-          messageArea.className = 'message info';
+          messageArea.className = 'message';
         }, 3000);
       }
     });
@@ -220,7 +230,7 @@
       messageArea.className = 'message';
       setTimeout(() => {
         messageArea.textContent = '🤖 Co mogę dla ciebie trzasnąć?';
-        messageArea.className = 'message info';
+        messageArea.className = 'message';
       }, 3000);
     });
   </script>
