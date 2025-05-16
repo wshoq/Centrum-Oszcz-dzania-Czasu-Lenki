@@ -113,6 +113,10 @@
     </div>
   </div>
 
+  <!-- Dźwięki -->
+  <audio id="soundTrzask" src="tone-trzask.ogg" preload="auto"></audio>
+  <audio id="soundSend" src="tone-send.ogg" preload="auto"></audio>
+
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js');
@@ -123,6 +127,8 @@
     const sendQuestion = document.getElementById('sendQuestion');
     const yesSend = document.getElementById('yesSend');
     const noSend = document.getElementById('noSend');
+    const soundTrzask = document.getElementById('soundTrzask');
+    const soundSend = document.getElementById('soundSend');
 
     let lastName = '';
     let lastService = '';
@@ -149,16 +155,14 @@
         if (!res.ok) throw new Error('Status ' + res.status);
 
         const data = await res.json();
-        console.log('DANE Z WEBHOOKA A:', data);
-        console.log('KLUCZE:', Object.keys(data));
-
-        // **TUTAJ** poprawka: numer faktury to pierwszy klucz obiektu
         lastInvoiceNumber = Object.keys(data)[0] || '';
-        console.log('NUMER FAKTURY:', lastInvoiceNumber);
 
         messageArea.textContent = `✅ Faktura trzasknięta: ${lastInvoiceNumber}`;
         messageArea.className = 'message success';
         form.reset();
+
+        // Odtwarzanie dźwięku po trzaśnięciu
+        soundTrzask.play();
 
         if (lastService) {
           sendQuestion.style.display = 'block';
@@ -182,7 +186,6 @@
       sendQuestion.style.display = 'none';
       messageArea.className = 'message info';
       messageArea.textContent = '⏳ Wysyłam fakturę do klienta...';
-      console.log('WYSYŁAM NUMER:', lastInvoiceNumber);
 
       const url = `https://n8n-service-rtdq.onrender.com/webhook/sendInvoice?name=${encodeURIComponent(lastName)}&service=${encodeURIComponent(lastService)}&invoiceNumber=${encodeURIComponent(lastInvoiceNumber)}`;
       try {
@@ -190,6 +193,9 @@
         if (!res.ok) throw new Error('Status ' + res.status);
         messageArea.textContent = '📧 Faktura wysłana!';
         messageArea.className = 'message success';
+
+        // Odtwarzanie dźwięku po wysłaniu
+        soundSend.play();
       } catch (error) {
         console.error(error);
         messageArea.textContent = '❌ Nie udało się wysłać faktury.';
