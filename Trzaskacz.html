@@ -24,6 +24,20 @@
       justify-content: center;
     }
 
+    a {
+      display: block;
+      margin-bottom: 20px;
+      text-align: center;
+      color: #0078D7;
+      text-decoration: none;
+      font-weight: bold;
+      user-select: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
     h1 {
       margin-bottom: 20px;
     }
@@ -64,20 +78,6 @@
       text-align: center;
     }
 
-    a {
-      display: block;
-      margin-top: 20px;
-      text-align: center;
-      color: #0078D7;
-      text-decoration: none;
-      font-weight: bold;
-      user-select: none;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-
     .question {
       display: none;
       background: white;
@@ -89,6 +89,7 @@
       margin-top: 20px;
       text-align: center;
     }
+
     .question button {
       width: 48%;
       margin: 0 1%;
@@ -98,33 +99,21 @@
       border: none;
       cursor: pointer;
     }
+
     .question #yesSend {
       background-color: #0078D7;
       color: white;
     }
+
     .question #noSend {
       background-color: #ccc;
       color: black;
-    }
-
-    /* --- MOBILE: przenieś link nad nagłówek --- */
-    @media (max-width: 600px) {
-      .overlay {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
-      a {
-        order: -1;
-        margin-bottom: 15px;
-      }
     }
   </style>
 </head>
 <body>
   <div class="overlay">
     <a href="index.html">⬅️ Powrót do Centrum Oszczędzania Czasu</a>
-
     <h1>Trzaskacz Faktur</h1>
     <form id="invoiceForm">
       <label for="name">Imię i Nazwisko:</label>
@@ -171,6 +160,7 @@
       lastName = document.getElementById('name').value.trim();
       lastService = document.getElementById('service').value;
 
+      // Stara obsługa webhooka 'trzaskaczfaktur'
       const chatInput = `${lastName} ${lastService}`;
       const url = `https://n8n-service-rtdq.onrender.com/webhook/trzaskaczfaktur?chatInput=${encodeURIComponent(chatInput)}&sessionId=test-manual&action=sendMessage`;
 
@@ -189,18 +179,15 @@
 
         const data = await res.json();
         console.log('DANE Z WEBHOOKA A:', data);
+        lastInvoiceNumber = data.name || data["EP/KP123/2025"] || ''; // dostosuj, jeśli trzeba
 
-        // Zakładam, że numer faktury jest pod kluczem w formacie "EP/KP123/2025"
-        // Weź pierwszy klucz obiektu jako numer faktury
-        lastInvoiceNumber = Object.keys(data)[0] || '';
-
-        messageArea.textContent = `✅ Faktura trzasknięta! Numer: ${lastInvoiceNumber}`;
+        messageArea.textContent = '✅ Faktura trzasknięta: ' + lastInvoiceNumber;
         messageArea.className = 'message success';
 
         form.reset();
 
-        // Pytanie o wysyłkę tylko dla konsultacji
-        if (lastService === 'k') {
+        // Pytanie o wysyłkę dla każdego rodzaju usługi (jeśli wybrano coś)
+        if (lastService) {
           sendQuestion.style.display = 'block';
         } else {
           sendQuestion.style.display = 'none';
@@ -223,7 +210,7 @@
       messageArea.className = 'message info';
       messageArea.textContent = '⏳ Wysyłam fakturę do klienta...';
 
-      // Teraz wysyłamy wraz z numerem faktury
+      // Obsługa webhooka 'sendInvoice' z numerem faktury
       const url = `https://n8n-service-rtdq.onrender.com/webhook/sendInvoice?name=${encodeURIComponent(lastName)}&service=${encodeURIComponent(lastService)}&invoiceNumber=${encodeURIComponent(lastInvoiceNumber)}`;
 
       try {
