@@ -13,7 +13,6 @@
       background: url('image.webp') no-repeat center center fixed;
       background-size: cover;
     }
-
     .overlay {
       background: rgba(255, 255, 255, 0.85);
       min-height: 100vh;
@@ -23,11 +22,9 @@
       align-items: center;
       justify-content: center;
     }
-
     h1 {
       margin-bottom: 20px;
     }
-
     form {
       background: white;
       padding: 25px;
@@ -36,19 +33,16 @@
       width: 100%;
       max-width: 400px;
     }
-
     label {
       display: block;
       margin-top: 10px;
     }
-
     input, select, button {
       width: 100%;
       padding: 10px;
       margin-top: 5px;
       font-size: 1em;
     }
-
     button {
       background-color: #0078D7;
       color: white;
@@ -57,13 +51,11 @@
       cursor: pointer;
       margin-top: 15px;
     }
-
     .message {
       margin-top: 20px;
       font-weight: bold;
       text-align: center;
     }
-
     a {
       display: block;
       margin-top: 20px;
@@ -73,11 +65,9 @@
       font-weight: bold;
       user-select: none;
     }
-
     a:hover {
       text-decoration: underline;
     }
-
     .question {
       display: none;
       background: white;
@@ -176,9 +166,9 @@
 
         const data = await res.json();
         console.log('DANE Z WEBHOOKA A:', data);
-
-        // Pobierz klucz (np. EP/KP123/2025)
+        console.log('KLUCZE Z OBIEKTU:', Object.keys(data));
         lastInvoiceNumber = Object.keys(data)[0] || '';
+        console.log('PRZYJĘTY NUMER FAKTURY:', lastInvoiceNumber);
 
         messageArea.textContent = '✅ Faktura trzasknięta!';
         messageArea.className = 'message success';
@@ -196,10 +186,10 @@
         }
       } catch (error) {
         clearInterval(intervalId);
+        console.error(error);
         messageArea.textContent = '❌ Błąd podczas trzaskania faktury.';
         messageArea.className = 'message';
         sendQuestion.style.display = 'none';
-        console.error(error);
       }
     });
 
@@ -207,6 +197,8 @@
       sendQuestion.style.display = 'none';
       messageArea.className = 'message info';
       messageArea.textContent = '⏳ Wysyłam fakturę do klienta...';
+
+      console.log('Wysyłam fakturę z numerem:', lastInvoiceNumber);
 
       const url = `https://n8n-service-rtdq.onrender.com/webhook/sendInvoice?name=${encodeURIComponent(lastName)}&service=${encodeURIComponent(lastService)}&invoiceNumber=${encodeURIComponent(lastInvoiceNumber)}`;
 
