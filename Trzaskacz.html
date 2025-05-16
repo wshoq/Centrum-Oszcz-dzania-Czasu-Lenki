@@ -13,9 +13,8 @@
       background: url('image.webp') no-repeat center center fixed;
       background-size: cover;
     }
-
     .overlay {
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(255,255,255,0.85);
       min-height: 100vh;
       padding: 20px;
       display: flex;
@@ -23,7 +22,6 @@
       align-items: center;
       justify-content: center;
     }
-
     a {
       display: block;
       margin-bottom: 20px;
@@ -33,15 +31,8 @@
       font-weight: bold;
       user-select: none;
     }
-
-    a:hover {
-      text-decoration: underline;
-    }
-
-    h1 {
-      margin-bottom: 20px;
-    }
-
+    a:hover { text-decoration: underline; }
+    h1 { margin-bottom: 20px; }
     form {
       background: white;
       padding: 25px;
@@ -50,19 +41,13 @@
       width: 100%;
       max-width: 400px;
     }
-
-    label {
-      display: block;
-      margin-top: 10px;
-    }
-
+    label { display: block; margin-top: 10px; }
     input, select, button {
       width: 100%;
       padding: 10px;
       margin-top: 5px;
       font-size: 1em;
     }
-
     button {
       background-color: #0078D7;
       color: white;
@@ -71,13 +56,11 @@
       cursor: pointer;
       margin-top: 15px;
     }
-
     .message {
       margin-top: 20px;
       font-weight: bold;
       text-align: center;
     }
-
     .question {
       display: none;
       background: white;
@@ -89,7 +72,6 @@
       margin-top: 20px;
       text-align: center;
     }
-
     .question button {
       width: 48%;
       margin: 0 1%;
@@ -99,16 +81,8 @@
       border: none;
       cursor: pointer;
     }
-
-    .question #yesSend {
-      background-color: #0078D7;
-      color: white;
-    }
-
-    .question #noSend {
-      background-color: #ccc;
-      color: black;
-    }
+    .question #yesSend { background-color: #0078D7; color: white; }
+    .question #noSend  { background-color: #ccc;    color: black; }
   </style>
 </head>
 <body>
@@ -156,11 +130,9 @@
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-
       lastName = document.getElementById('name').value.trim();
       lastService = document.getElementById('service').value;
 
-      // Stara obsługa webhooka 'trzaskaczfaktur'
       const chatInput = `${lastName} ${lastService}`;
       const url = `https://n8n-service-rtdq.onrender.com/webhook/trzaskaczfaktur?chatInput=${encodeURIComponent(chatInput)}&sessionId=test-manual&action=sendMessage`;
 
@@ -174,19 +146,20 @@
       try {
         const res = await fetch(url);
         clearInterval(intervalId);
-
         if (!res.ok) throw new Error('Status ' + res.status);
 
         const data = await res.json();
         console.log('DANE Z WEBHOOKA A:', data);
-        lastInvoiceNumber = data.name || data["EP/KP123/2025"] || ''; // dostosuj, jeśli trzeba
+        console.log('KLUCZE:', Object.keys(data));
 
-        messageArea.textContent = '✅ Faktura trzasknięta: ' + lastInvoiceNumber;
+        // **TUTAJ** poprawka: numer faktury to pierwszy klucz obiektu
+        lastInvoiceNumber = Object.keys(data)[0] || '';
+        console.log('NUMER FAKTURY:', lastInvoiceNumber);
+
+        messageArea.textContent = `✅ Faktura trzasknięta: ${lastInvoiceNumber}`;
         messageArea.className = 'message success';
-
         form.reset();
 
-        // Pytanie o wysyłkę dla każdego rodzaju usługi (jeśli wybrano coś)
         if (lastService) {
           sendQuestion.style.display = 'block';
         } else {
@@ -198,10 +171,10 @@
         }
       } catch (error) {
         clearInterval(intervalId);
+        console.error(error);
         messageArea.textContent = '❌ Błąd podczas trzaskania faktury.';
         messageArea.className = 'message';
         sendQuestion.style.display = 'none';
-        console.error(error);
       }
     });
 
@@ -209,14 +182,12 @@
       sendQuestion.style.display = 'none';
       messageArea.className = 'message info';
       messageArea.textContent = '⏳ Wysyłam fakturę do klienta...';
+      console.log('WYSYŁAM NUMER:', lastInvoiceNumber);
 
-      // Obsługa webhooka 'sendInvoice' z numerem faktury
       const url = `https://n8n-service-rtdq.onrender.com/webhook/sendInvoice?name=${encodeURIComponent(lastName)}&service=${encodeURIComponent(lastService)}&invoiceNumber=${encodeURIComponent(lastInvoiceNumber)}`;
-
       try {
         const res = await fetch(url);
         if (!res.ok) throw new Error('Status ' + res.status);
-
         messageArea.textContent = '📧 Faktura wysłana!';
         messageArea.className = 'message success';
       } catch (error) {
