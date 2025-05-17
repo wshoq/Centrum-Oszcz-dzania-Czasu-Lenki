@@ -116,16 +116,6 @@
         <input type="number" id="customAmount" placeholder="Podaj kwotę w PLN" min="0" style="display:none;" />
       </div>
 
-      <label for="invoiceDate">Data faktury:</label>
-      <input type="date" id="invoiceDate" required />
-
-      <label for="account">Konto do zapłaty:</label>
-      <select id="account" required>
-        <option value="">-- wybierz --</option>
-        <option value="PKO">PKO S.A.</option>
-        <option value="Revolut">Revolut</option>
-      </select>
-
       <button type="submit">Trzaskaj Fakturę</button>
     </form>
 
@@ -180,13 +170,11 @@
       e.preventDefault();
       lastName = document.getElementById('name').value.trim();
       lastService = document.getElementById('service').value;
-      const date = document.getElementById('invoiceDate').value;
-      const account = document.getElementById('account').value;
       const amount = checkbox.checked
         ? parseFloat(amountInput.value) || 0
         : 180;
 
-      const chatInput = `${lastName} ${lastService} ${amount} ${date} ${account}`;
+      const chatInput = `${lastName} ${lastService} ${amount}`;
       const url = `https://n8n-service-rtdq.onrender.com/webhook/trzaskaczfaktur?chatInput=${encodeURIComponent(chatInput)}&sessionId=test-manual&action=sendMessage`;
 
       let dots = '';
