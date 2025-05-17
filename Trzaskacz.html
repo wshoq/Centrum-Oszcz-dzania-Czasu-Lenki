@@ -4,8 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Trzaskacz Faktur</title>
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#0078D7" />
   <style>
     body {
       margin: 0;
@@ -101,6 +99,12 @@
         <option value="p">Proforma Szkolenie</option>
       </select>
 
+      <label>
+        <input type="checkbox" id="customAmountCheckbox" />
+        Niestandardowa kwota
+      </label>
+      <input type="number" id="customAmount" placeholder="Podaj kwotę w PLN" min="0" style="display:none; margin-top:5px;" />
+
       <button type="submit">Trzaskaj Fakturę</button>
     </form>
 
@@ -113,7 +117,6 @@
     </div>
   </div>
 
-  <!-- Dźwięki -->
   <audio id="soundTrzask" src="tone-trzask.ogg" preload="auto"></audio>
   <audio id="soundSend" src="tone-send.ogg" preload="auto"></audio>
 
@@ -130,6 +133,13 @@
     const soundTrzask = document.getElementById('soundTrzask');
     const soundSend = document.getElementById('soundSend');
 
+    const checkbox = document.getElementById('customAmountCheckbox');
+    const amountInput = document.getElementById('customAmount');
+
+    checkbox.addEventListener('change', () => {
+      amountInput.style.display = checkbox.checked ? 'block' : 'none';
+    });
+
     let lastName = '';
     let lastService = '';
     let lastInvoiceNumber = '';
@@ -138,8 +148,11 @@
       e.preventDefault();
       lastName = document.getElementById('name').value.trim();
       lastService = document.getElementById('service').value;
+      const amount = checkbox.checked
+        ? parseFloat(amountInput.value) || 0
+        : 180;
 
-      const chatInput = `${lastName} ${lastService}`;
+      const chatInput = `${lastName} ${lastService} ${amount}`;
       const url = `https://n8n-service-rtdq.onrender.com/webhook/trzaskaczfaktur?chatInput=${encodeURIComponent(chatInput)}&sessionId=test-manual&action=sendMessage`;
 
       let dots = '';
@@ -153,15 +166,12 @@
         const res = await fetch(url);
         clearInterval(intervalId);
         if (!res.ok) throw new Error('Status ' + res.status);
-
         const data = await res.json();
         lastInvoiceNumber = Object.keys(data)[0] || '';
-
         messageArea.textContent = `✅ Faktura trzasknięta: ${lastInvoiceNumber}`;
         messageArea.className = 'message success';
         form.reset();
-
-        // Odtwarzanie dźwięku po trzaśnięciu
+        amountInput.style.display = 'none';
         soundTrzask.play();
 
         if (lastService) {
@@ -186,15 +196,12 @@
       sendQuestion.style.display = 'none';
       messageArea.className = 'message info';
       messageArea.textContent = '⏳ Wysyłam fakturę do klienta...';
-
       const url = `https://n8n-service-rtdq.onrender.com/webhook/sendInvoice?name=${encodeURIComponent(lastName)}&service=${encodeURIComponent(lastService)}&invoiceNumber=${encodeURIComponent(lastInvoiceNumber)}`;
       try {
         const res = await fetch(url);
         if (!res.ok) throw new Error('Status ' + res.status);
         messageArea.textContent = '📧 Faktura wysłana!';
         messageArea.className = 'message success';
-
-        // Odtwarzanie dźwięku po wysłaniu
         soundSend.play();
       } catch (error) {
         console.error(error);
