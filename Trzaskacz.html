@@ -1,229 +1,35 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Trzaskacz Faktur</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: url('image.webp') no-repeat center center fixed;
-      background-size: cover;
-    }
-    .overlay {
-      background: rgba(255,255,255,0.85);
-      min-height: 100vh;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    a {
-      display: block;
-      margin-bottom: 20px;
-      text-align: center;
-      color: #0078D7;
-      text-decoration: none;
-      font-weight: bold;
-      user-select: none;
-    }
-    a:hover { text-decoration: underline; }
-    h1 { margin-bottom: 20px; }
-    form {
-      background: white;
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 400px;
-    }
-    label { display: block; margin-top: 10px; }
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      font-size: 1em;
-    }
-    button {
-      background-color: #0078D7;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 15px;
-    }
-    .message {
-      margin-top: 20px;
-      font-weight: bold;
-      text-align: center;
-    }
-    .question {
-      display: none;
-      background: white;
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 400px;
-      margin-top: 20px;
-      text-align: center;
-    }
-    .question button {
-      width: 48%;
-      margin: 0 1%;
-      padding: 10px;
-      font-size: 1em;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-    }
-    .question #yesSend { background-color: #0078D7; color: white; }
-    .question #noSend  { background-color: #ccc;    color: black; }
-  </style>
-</head>
-<body>
-  <div class="overlay">
-    <a href="index.html">⬅️ Powrót do Centrum Oszczędzania Czasu</a>
-    <h1>Trzaskacz Faktur</h1>
-    <form id="invoiceForm">
-      <label for="name">Imię i Nazwisko:</label>
-      <input type="text" id="name" placeholder="np. Henryk Sienkiewicz" required />
+<!-- ... HEAD BEZ ZMIAN ... -->
+<style>
+  /* ... Twoje style bez zmian ... */
+  .inline-checkbox {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+  }
+  .inline-checkbox input[type="checkbox"] {
+    margin-right: 10px;
+  }
+</style>
+<!-- ... -->
+<form id="invoiceForm">
+  <label for="name">Imię i Nazwisko:</label>
+  <input type="text" id="name" placeholder="np. Henryk Sienkiewicz" required />
 
-      <label for="service">Rodzaj usługi:</label>
-      <select id="service" required>
-        <option value="">-- wybierz --</option>
-        <option value="s">Szkolenie</option>
-        <option value="k">Konsultacja</option>
-        <option value="p">Proforma Szkolenie</option>
-      </select>
+  <label for="service">Rodzaj usługi:</label>
+  <select id="service" required>
+    <option value="">-- wybierz --</option>
+    <option value="s">Szkolenie</option>
+    <option value="k">Konsultacja</option>
+    <option value="p">Proforma Szkolenie</option>
+  </select>
 
-      <label>
-        <input type="checkbox" id="customAmountCheckbox" />
-        Niestandardowa kwota
-      </label>
-      <input type="number" id="customAmount" placeholder="Podaj kwotę w PLN" min="0" style="display:none; margin-top:5px;" />
-
-      <button type="submit">Trzaskaj Fakturę</button>
-    </form>
-
-    <div class="message" id="messageArea">🤖 Co mogę dla ciebie trzasnąć?</div>
-
-    <div class="question" id="sendQuestion">
-      <p>📤 Czy wysłać fakturę do klienta?</p>
-      <button id="yesSend">Tak</button>
-      <button id="noSend">Nie</button>
+  <div id="customAmountWrapper" style="display:none;">
+    <div class="inline-checkbox">
+      <input type="checkbox" id="customAmountCheckbox" />
+      <label for="customAmountCheckbox">Niestandardowa kwota</label>
     </div>
+    <input type="number" id="customAmount" placeholder="Podaj kwotę w PLN" min="0" style="display:none;" />
   </div>
 
-  <audio id="soundTrzask" src="tone-trzask.ogg" preload="auto"></audio>
-  <audio id="soundSend" src="tone-send.ogg" preload="auto"></audio>
-
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js');
-    }
-
-    const form = document.getElementById('invoiceForm');
-    const messageArea = document.getElementById('messageArea');
-    const sendQuestion = document.getElementById('sendQuestion');
-    const yesSend = document.getElementById('yesSend');
-    const noSend = document.getElementById('noSend');
-    const soundTrzask = document.getElementById('soundTrzask');
-    const soundSend = document.getElementById('soundSend');
-
-    const checkbox = document.getElementById('customAmountCheckbox');
-    const amountInput = document.getElementById('customAmount');
-
-    checkbox.addEventListener('change', () => {
-      amountInput.style.display = checkbox.checked ? 'block' : 'none';
-    });
-
-    let lastName = '';
-    let lastService = '';
-    let lastInvoiceNumber = '';
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      lastName = document.getElementById('name').value.trim();
-      lastService = document.getElementById('service').value;
-      const amount = checkbox.checked
-        ? parseFloat(amountInput.value) || 0
-        : 180;
-
-      const chatInput = `${lastName} ${lastService} ${amount}`;
-      const url = `https://n8n-service-rtdq.onrender.com/webhook/trzaskaczfaktur?chatInput=${encodeURIComponent(chatInput)}&sessionId=test-manual&action=sendMessage`;
-
-      let dots = '';
-      const intervalId = setInterval(() => {
-        dots = dots.length >= 3 ? '' : dots + '.';
-        messageArea.textContent = '⏳ Trzaskam fakturę' + dots;
-        messageArea.className = 'message info';
-      }, 500);
-
-      try {
-        const res = await fetch(url);
-        clearInterval(intervalId);
-        if (!res.ok) throw new Error('Status ' + res.status);
-        const data = await res.json();
-        lastInvoiceNumber = Object.keys(data)[0] || '';
-        messageArea.textContent = `✅ Faktura trzasknięta: ${lastInvoiceNumber}`;
-        messageArea.className = 'message success';
-        form.reset();
-        amountInput.style.display = 'none';
-        soundTrzask.play();
-
-        if (lastService) {
-          sendQuestion.style.display = 'block';
-        } else {
-          sendQuestion.style.display = 'none';
-          setTimeout(() => {
-            messageArea.textContent = '🤖 Co mogę dla ciebie trzasnąć?';
-            messageArea.className = 'message';
-          }, 3000);
-        }
-      } catch (error) {
-        clearInterval(intervalId);
-        console.error(error);
-        messageArea.textContent = '❌ Błąd podczas trzaskania faktury.';
-        messageArea.className = 'message';
-        sendQuestion.style.display = 'none';
-      }
-    });
-
-    yesSend.addEventListener('click', async () => {
-      sendQuestion.style.display = 'none';
-      messageArea.className = 'message info';
-      messageArea.textContent = '⏳ Wysyłam fakturę do klienta...';
-      const url = `https://n8n-service-rtdq.onrender.com/webhook/sendInvoice?name=${encodeURIComponent(lastName)}&service=${encodeURIComponent(lastService)}&invoiceNumber=${encodeURIComponent(lastInvoiceNumber)}`;
-      try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('Status ' + res.status);
-        messageArea.textContent = '📧 Faktura wysłana!';
-        messageArea.className = 'message success';
-        soundSend.play();
-      } catch (error) {
-        console.error(error);
-        messageArea.textContent = '❌ Nie udało się wysłać faktury.';
-        messageArea.className = 'message';
-      } finally {
-        setTimeout(() => {
-          messageArea.textContent = '🤖 Co mogę dla ciebie trzasnąć?';
-          messageArea.className = 'message';
-        }, 3000);
-      }
-    });
-
-    noSend.addEventListener('click', () => {
-      sendQuestion.style.display = 'none';
-      messageArea.textContent = '👌 Faktura nie została wysłana.';
-      messageArea.className = 'message';
-      setTimeout(() => {
-        messageArea.textContent = '🤖 Co mogę dla ciebie trzasnąć?';
-        messageArea.className = 'message';
-      }, 3000);
-    });
-  </script>
-</body>
-</html>
+  <button type="submit">Trzaskaj Fakturę</button>
+</form>
