@@ -95,7 +95,7 @@
       });
 
       try {
-        const response = await fetch(`https://n8n-service-rtdq.onrender.com/webhook-test/fakturagenda?miesiac=${miesiac}`);
+        const response = await fetch(`https://n8n-service-rtdq.onrender.com/webhook/fakturagenda?miesiac=${miesiac}`);
         const text = await response.text();
         resultElem.textContent = text;
       } catch (error) {
