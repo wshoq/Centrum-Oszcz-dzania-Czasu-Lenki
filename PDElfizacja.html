@@ -11,29 +11,40 @@
       max-width: 500px;
       margin: auto;
     }
+
     h1 {
       text-align: center;
     }
+
     label, select, button {
       width: 100%;
       font-size: 1.2em;
       margin: 10px 0;
     }
+
     button {
       padding: 12px;
       background-color: #4CAF50;
       color: white;
       border: none;
       border-radius: 8px;
-      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
     }
+
     button:hover {
       background-color: #45a049;
     }
+
+    button img {
+      height: 24px;
+      width: 24px;
+    }
+
     a.button-link {
       display: inline-block;
       margin-bottom: 20px;
@@ -44,8 +55,11 @@
       border-radius: 8px;
       text-align: center;
     }
-    .icon {
-      font-size: 1.4em;
+
+    #result {
+      margin-top: 20px;
+      font-weight: bold;
+      white-space: pre-line;
     }
   </style>
 </head>
@@ -53,7 +67,7 @@
 
   <a href="index.html" class="button-link">Powrót do Centrum Oszczędzania Czasu</a>
 
-  <h1>Spuść PD-Elfa 🐕💨</h1>
+  <h1>Puść PD-Elfa</h1>
 
   <form id="fakturaForm">
     <label for="miesiac">Wybierz miesiąc:</label>
@@ -74,32 +88,42 @@
     </select>
 
     <button type="submit">
-      <span class="icon">⚡</span> Puszczam PD-Elfa
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Emoji_u1f3c3.svg/32px-Emoji_u1f3c3.svg.png" alt="Elf ikonka" />
+      Puszczam PD-Elfa
     </button>
   </form>
 
-  <p id="result" style="margin-top:20px; font-weight:bold;"></p>
+  <p id="result"></p>
 
-  <audio id="bep-sound" src="bep.mp3" preload="auto"></audio>
+  <audio id="bepSound" src="bep.mp3" preload="auto"></audio>
 
   <script>
     document.getElementById("fakturaForm").addEventListener("submit", async function(e) {
       e.preventDefault();
       const miesiac = document.getElementById("miesiac").value;
       const resultElem = document.getElementById("result");
-      const sound = document.getElementById("bep-sound");
+      const audio = document.getElementById("bepSound");
 
       resultElem.textContent = "Trwa przetwarzanie...";
-      sound.play().catch(() => {
-        console.warn("Dźwięk nie mógł zostać odtworzony automatycznie.");
-      });
 
       try {
         const response = await fetch(`https://n8n-service-rtdq.onrender.com/webhook/fakturagenda?miesiac=${miesiac}`);
-        const text = await response.text();
-        resultElem.textContent = text;
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const message = data[0]?.message || "Brak wiadomości w odpowiedzi";
+
+        resultElem.textContent = message;
+
+        // Zagraj dźwięk po otrzymaniu odpowiedzi
+        audio.play();
+
       } catch (error) {
         resultElem.textContent = "Wystąpił błąd podczas wywoływania webhooka.";
+        console.error(error);
       }
     });
   </script>
