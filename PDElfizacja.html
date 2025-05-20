@@ -97,7 +97,7 @@
       try {
         const response = await fetch(`https://n8n-service-rtdq.onrender.com/webhook/fakturagenda?miesiac=${miesiac}`);
         const data = await response.json();
-        resultElem.textContent = data[0]?.message || "Brak komunikatu z webhooka.";
+        resultElem.textContent = data.message || "Brak komunikatu z webhooka.";
       } catch (error) {
         resultElem.textContent = "Wystąpił błąd podczas wywoływania webhooka.";
         console.error("Błąd:", error);
