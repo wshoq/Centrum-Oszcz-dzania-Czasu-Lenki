@@ -1,3 +1,4 @@
+<!-- Twój HTML z poprawioną logiką kwoty -->
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -182,9 +183,11 @@
       lastService = document.getElementById('service').value;
       const date = document.getElementById('invoiceDate').value;
       const account = document.getElementById('account').value;
+
+      // ✅ Zmieniona linia — ustala domyślną kwotę wg typu usługi
       const amount = checkbox.checked
         ? parseFloat(amountInput.value) || 0
-        : 180;
+        : (lastService === 'k' ? 180 : 150);
 
       const chatInput = `${lastName} ${lastService} ${amount} ${date} ${account}`;
       const url = `https://n8n-service-rtdq.onrender.com/webhook/trzaskaczfaktur?chatInput=${encodeURIComponent(chatInput)}&sessionId=test-manual&action=sendMessage`;
