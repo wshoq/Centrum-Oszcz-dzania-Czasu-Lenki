@@ -1,3 +1,4 @@
+<!-- Twój HTML z poprawioną logiką kwoty -->
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -126,11 +127,6 @@
         <option value="Revolut">Revolut</option>
       </select>
 
-      <div class="inline-checkbox">
-        <input type="checkbox" id="nipCheckbox" />
-        <label for="nipCheckbox">NIP</label>
-      </div>
-
       <button type="submit">Trzaskaj Fakturę</button>
     </form>
 
@@ -163,7 +159,6 @@
     const checkbox = document.getElementById('customAmountCheckbox');
     const amountInput = document.getElementById('customAmount');
     const customAmountWrapper = document.getElementById('customAmountWrapper');
-    const nipCheckbox = document.getElementById('nipCheckbox');
 
     serviceSelect.addEventListener('change', () => {
       const isConsultation = serviceSelect.value === 'k';
@@ -188,15 +183,13 @@
       lastService = document.getElementById('service').value;
       const date = document.getElementById('invoiceDate').value;
       const account = document.getElementById('account').value;
-      const nipChecked = nipCheckbox.checked;
 
+      // ✅ Zmieniona linia — ustala domyślną kwotę wg typu usługi
       const amount = checkbox.checked
         ? parseFloat(amountInput.value) || 0
         : (lastService === 'k' ? 180 : 150);
 
-      let chatInput = `${lastName} ${lastService} ${amount} ${date} ${account}`;
-      if (nipChecked) chatInput += ' nip';
-
+      const chatInput = `${lastName} ${lastService} ${amount} ${date} ${account}`;
       const url = `https://n8n-service-rtdq.onrender.com/webhook/trzaskaczfaktur?chatInput=${encodeURIComponent(chatInput)}&sessionId=test-manual&action=sendMessage`;
 
       let dots = '';
