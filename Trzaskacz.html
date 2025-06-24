@@ -1,4 +1,3 @@
-<!-- Twój HTML z poprawioną logiką kwoty -->
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -184,13 +183,12 @@
       const date = document.getElementById('invoiceDate').value;
       const account = document.getElementById('account').value;
 
-      // ✅ Zmieniona linia — ustala domyślną kwotę wg typu usługi
       const amount = checkbox.checked
         ? parseFloat(amountInput.value) || 0
         : (lastService === 'k' ? 180 : 150);
 
       const chatInput = `${lastName} ${lastService} ${amount} ${date} ${account}`;
-      const url = `https://n8n-service-rtdq.onrender.com/webhook/trzaskaczfaktur?chatInput=${encodeURIComponent(chatInput)}&sessionId=test-manual&action=sendMessage`;
+      const url = `https://vps15151.awhost.cloud/webhook/trzaskaczfaktur?chatInput=${encodeURIComponent(chatInput)}&sessionId=test-manual&action=sendMessage`;
 
       let dots = '';
       const intervalId = setInterval(() => {
@@ -233,7 +231,7 @@
       sendQuestion.style.display = 'none';
       messageArea.className = 'message info';
       messageArea.textContent = '⏳ Wysyłam fakturę do klienta...';
-      const url = `https://n8n-service-rtdq.onrender.com/webhook/sendInvoice?name=${encodeURIComponent(lastName)}&service=${encodeURIComponent(lastService)}&invoiceNumber=${encodeURIComponent(lastInvoiceNumber)}`;
+      const url = `https://vps15151.awhost.cloud/webhook/sendInvoice?name=${encodeURIComponent(lastName)}&service=${encodeURIComponent(lastService)}&invoiceNumber=${encodeURIComponent(lastInvoiceNumber)}`;
       try {
         const res = await fetch(url);
         if (!res.ok) throw new Error('Status ' + res.status);
